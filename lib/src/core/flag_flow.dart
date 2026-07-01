@@ -140,6 +140,12 @@ class FlagFlow {
       for (final provider in _providers!) {
         await provider.fetchAndActivate();
       }
+      
+      // Trigger a re-evaluation for all flags currently rendered in the UI
+      // This ensures FeatureFlagWidget and FeatureFlagBuilder instantly rebuild!
+      for (final key in _registry.activeWatchers) {
+        _evaluate(key, const FlagValue(null));
+      }
     }
   }
 

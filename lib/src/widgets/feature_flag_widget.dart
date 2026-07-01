@@ -22,6 +22,10 @@ class FeatureFlagWidget extends StatefulWidget {
   /// Optional: If your flag is a JSON object, use this to extract a specific boolean key from it.
   /// Example: If flag is `{"auth": true}`, set `jsonKey: 'auth'`.
   final String? jsonKey;
+  
+  /// If `true` (default), this widget will automatically rebuild whenever the underlying flag changes in the background.
+  /// If `false`, it will read the flag once during initialization and ignore all future updates to prevent UI shifting.
+  final bool listenToChanges;
 
   const FeatureFlagWidget({
     super.key,
@@ -29,6 +33,7 @@ class FeatureFlagWidget extends StatefulWidget {
     this.jsonKey,
     this.fallback,
     this.defaultValue = false,
+    this.listenToChanges = true,
     required this.child,
   });
 
@@ -54,14 +59,16 @@ class _FeatureFlagWidgetState extends State<FeatureFlagWidget> {
     final initialValue = FlagFlow.getValue(widget.flagKey, defaultValue: widget.defaultValue);
     _isEnabled = _evaluate(initialValue);
     
-    // Subscribe to background updates
-    _subscription = FlagFlow.watch(widget.flagKey).listen((value) {
-      if (mounted) {
-        setState(() {
-          _isEnabled = _evaluate(value);
-        });
-      }
-    });
+    // Subscribe to background updates only if requested
+    if (widget.listenToChanges) {
+      _subscription = FlagFlow.watch(widget.flagKey).listen((value) {
+        if (mounted) {
+          setState(() {
+            _isEnabled = _evaluate(value);
+          });
+        }
+      });
+    }
   }
 
   @override

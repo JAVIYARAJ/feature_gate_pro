@@ -10,6 +10,9 @@ class FlagRegistry {
   /// Exposes all currently registered flags.
   Map<String, FeatureFlag> get allFlags => Map.unmodifiable(_flags);
 
+  /// Exposes the keys of flags that are currently being actively watched by UI widgets.
+  Set<String> get activeWatchers => _watchers.keys.toSet();
+
   /// Updates or adds a flag in the registry and notifies watchers.
   void updateFlag(FeatureFlag flag, {FlagValue? evaluatedValue}) {
     _flags[flag.key] = flag;

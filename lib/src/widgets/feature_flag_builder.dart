@@ -15,12 +15,17 @@ class FeatureFlagBuilder extends StatefulWidget {
   
   /// The default raw value (string, map, bool, etc.) to use if the flag is missing from all providers.
   final dynamic defaultValue;
+  
+  /// If `true` (default), this widget will automatically rebuild whenever the underlying flag changes in the background.
+  /// If `false`, it will read the flag once during initialization and ignore all future updates to prevent UI shifting.
+  final bool listenToChanges;
 
   const FeatureFlagBuilder({
     super.key,
     required this.flagKey,
     required this.builder,
     this.defaultValue,
+    this.listenToChanges = true,
   });
 
   @override
@@ -37,14 +42,16 @@ class _FeatureFlagBuilderState extends State<FeatureFlagBuilder> {
     // Synchronously grab initial state
     _flagValue = FlagFlow.getValue(widget.flagKey, defaultValue: widget.defaultValue);
     
-    // Subscribe to background updates
-    _subscription = FlagFlow.watch(widget.flagKey).listen((value) {
-      if (mounted) {
-        setState(() {
-          _flagValue = value;
-        });
-      }
-    });
+    // Subscribe to background updates only if requested
+    if (widget.listenToChanges) {
+      _subscription = FlagFlow.watch(widget.flagKey).listen((value) {
+        if (mounted) {
+          setState(() {
+            _flagValue = value;
+          });
+        }
+      });
+    }
   }
 
   @override
