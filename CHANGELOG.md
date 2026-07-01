@@ -1,3 +1,11 @@
+## 1.2.0
+
+* **New Feature**: Added `listenToChanges` parameter to `FeatureFlagWidget` and `FeatureFlagBuilder`. You can now set this to `false` if you want the widget to read the flag once during initialization and intentionally ignore background refreshes (preventing sudden UI shifts).
+
+## 1.1.2
+
+* **Bug Fix**: Fixed an issue where the background `refreshInterval` would successfully download new flags but fail to trigger a reactive UI rebuild for `FeatureFlagWidget` and `FeatureFlagBuilder`. 
+
 ## 1.1.1
 
 * Added explicit instructions to the `README.md` about Firebase Remote Config's internal `minimumFetchInterval` caching to help developers correctly test the `refreshInterval` feature.
