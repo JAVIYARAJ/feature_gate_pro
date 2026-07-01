@@ -1,3 +1,7 @@
+## 1.2.2
+
+* **Critical Bug Fix**: Fixed an issue where `FeatureFlagWidget` and `FeatureFlagBuilder` would not reactively rebuild if the flag was provided exclusively by `FirebaseAdapterProvider` or `RestApiProvider` and not present in the local `FlagRegistry` fallback cache.
+
 ## 1.2.1
 
 * **Documentation**: Updated the `README.md` to document the new `listenToChanges` parameter in the Reactive Widgets section.

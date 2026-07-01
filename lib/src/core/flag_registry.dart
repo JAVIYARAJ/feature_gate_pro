@@ -16,8 +16,13 @@ class FlagRegistry {
   /// Updates or adds a flag in the registry and notifies watchers.
   void updateFlag(FeatureFlag flag, {FlagValue? evaluatedValue}) {
     _flags[flag.key] = flag;
-    if (_watchers.containsKey(flag.key)) {
-      _watchers[flag.key]?.add(evaluatedValue ?? flag.defaultValue);
+    broadcast(flag.key, evaluatedValue ?? flag.defaultValue);
+  }
+  
+  /// Broadcasts a new evaluated value to all active watchers for the given key.
+  void broadcast(String key, FlagValue evaluatedValue) {
+    if (_watchers.containsKey(key)) {
+      _watchers[key]?.add(evaluatedValue);
     }
   }
 

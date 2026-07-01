@@ -276,15 +276,12 @@ class FlagFlow {
       print('[FlagFlow Debug] Evaluated \'$key\' to \'${result.asDynamic}\' (Source: $evaluationSource)');
     }
 
-    // Update the registry watchers only if there is a flag in the registry
+    // 4. Update the registry watchers (UI Stream)
     if (_initialized) {
-       final storedFlag = _registry.getFlag(key);
-       if (storedFlag != null) {
-          _registry.updateFlag(storedFlag, evaluatedValue: result);
-       }
+       _registry.broadcast(key, result);
     }
 
-    // 4. Track evaluation
+    // 5. Track evaluation
     if (_initialized && _analytics != null) {
       if (_analytics!.sampleRate >= 1.0 || Random().nextDouble() < _analytics!.sampleRate) {
         _analytics!.trackEvaluation(key, result, context: _userContext);
