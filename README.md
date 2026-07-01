@@ -28,7 +28,7 @@ Add `feature_gate_pro` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  feature_gate_pro: ^1.0.0
+  feature_gate_pro: ^1.0.3
 ```
 
 ---
@@ -58,19 +58,21 @@ void main() async {
     // 2. Define your cascading providers
     providers: [
       // Priority 1: Check your custom REST API First
-      RestApiProvider(url: 'https://api.my-app.com/flags'),
+      RestApiProvider(endpoint: 'https://api.my-app.com/flags'),
       
       // Priority 2: Fallback to Firebase Remote Config
       FirebaseAdapterProvider(
         onFetchAndActivate: () async => await FirebaseRemoteConfig.instance.fetchAndActivate(),
-        onGetAll: () => FirebaseRemoteConfig.instance.getAll(),
+        onGetAll: () => FirebaseRemoteConfig.instance.getAll(), // Note: Pass the function! () =>
       ),
       
-      // Priority 3: Fallback to Local Defaults
+      // Priority 3: Fallback to Local Defaults (assets are compiled into the app)
       LocalJsonProvider(assetPath: 'assets/flags.json'),
     ],
     
     // 3. (Optional) Setup periodic background syncing every 15 minutes
+    // Note: Local asset files are read-only and won't dynamically update.
+    // This timer is meant to trigger RestApiProvider or Firebase updates over the network.
     refreshInterval: const Duration(minutes: 15),
 
     // 4. (Optional) Attach an Analytics Adapter for A/B tracking
@@ -86,6 +88,18 @@ void main() async {
 }
 ```
 
+### Firebase Setup Requirement
+Because FeatureGate Pro is completely dependency-free, you must install `firebase_core` and `firebase_remote_config` in your app yourself. Configure it using `flutterfire configure`, run `Firebase.initializeApp()` in `main()`, and pass the methods to `FirebaseAdapterProvider`. The SDK uses dynamic dispatch to automatically extract the strings behind the scenes!
+
+**Testing Firebase `refreshInterval`**: By default, Firebase caches data for 12 hours. If you pass `refreshInterval: Duration(minutes: 1)` to `FlagFlow`, Firebase will ignore the network requests and return cached data. To actually test live background refreshes, you must lower Firebase's internal cache limit in your `main.dart` *before* initializing `FlagFlow`:
+
+```dart
+await FirebaseRemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
+  fetchTimeout: const Duration(seconds: 10),
+  minimumFetchInterval: const Duration(minutes: 1), // Lower this for testing!
+));
+```
+
 ---
 
 ## 🎨 3. UI Integration (Reactive Widgets)
@@ -94,7 +108,7 @@ FeatureGate Pro provides highly optimized widgets that automatically rebuild whe
 
 ### `FeatureFlagWidget` (Declarative UI Toggling)
 
-Best for wrapping entire screens, features, or large UI blocks.
+Best for wrapping entire screens, features, or large UI blocks for simple `true`/`false` flags.
 
 ```dart
 FeatureFlagWidget(
@@ -106,38 +120,46 @@ FeatureFlagWidget(
 )
 ```
 
-### `FeatureFlagBuilder` (Imperative Extraction)
+### `FeatureFlagBuilder` (Imperative Extraction for Strings/JSON)
 
-Best for extracting underlying strings, integers, or JSON maps.
+Best for extracting underlying strings, integers, or JSON maps dynamically.
 
 ```dart
 FeatureFlagBuilder(
-  flagKey: 'buy_button_color',
+  flagKey: 'enabled_modules',
   builder: (context, flagValue) {
     // flagValue.asString, .asBool, .asInt, .asDouble, .asJson
     
-    final color = flagValue.asString == 'blue' ? Colors.blue : Colors.red;
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(backgroundColor: color),
-      child: const Text('Buy Now'),
-      onPressed: () {},
+    final modules = flagValue.asJson;
+    final isHomeEnabled = modules['home'] == true;
+    final isTasksEnabled = modules['tasks'] == true;
+    
+    return Column(
+      children: [
+        if (isHomeEnabled) const HomeWidget(),
+        if (isTasksEnabled) const TasksWidget(),
+      ],
     );
   }
 )
 ```
 
+**JSON Parsing Magic**: If you provide a raw JSON map in Firebase (e.g. `{"home": true, "tasks": true}`), `FlagFlow` automatically parses it and returns it via `.asJson`.
+
 ---
 
 ## 🎯 4. Audience Targeting
 
-You can restrict a feature to a specific demographic without touching your Dart code. This works seamlessly across `LocalJsonProvider`, `FirebaseAdapterProvider`, and `RestApiProvider` by reading the `metadata` JSON object.
+You can restrict a feature to a specific demographic without touching your Dart code. This works seamlessly across `LocalJsonProvider`, `FirebaseAdapterProvider`, and `RestApiProvider`. 
+
+To use advanced targeting, your flag in Firebase/JSON must be wrapped in a `"value"` key, alongside a `"metadata"` object.
 
 ### Supported Operators
 - `==` / `!=` (Equality)
 - `>`, `<`, `>=`, `<=` (Numerical & Semantic Versioning)
 - `in`, `not_in` (List inclusion)
 
-### Example JSON Ruleset
+### Example JSON Format (Advanced Mode)
 
 ```json
 {
@@ -176,7 +198,7 @@ FlagFlow.setContext(
   UserContext(
     id: user.uid,
     country: user.country,
-    attributes: {'is_premium': user.isPremium}
+    customAttributes: {'is_premium': user.isPremium}
   )
 );
 ```
@@ -185,7 +207,7 @@ FlagFlow.setContext(
 
 ## 🎲 5. Percentage Rollouts
 
-Gradually roll out a high-risk feature to a random subset of users. FeatureGate Pro uses consistent hashing, ensuring a user assigned to the "Enabled" bucket stays in that bucket forever.
+Gradually roll out a high-risk feature to a random subset of users. FeatureGate Pro uses consistent hashing (FNV-1a), ensuring a user assigned to the "Enabled" bucket stays in that bucket forever.
 
 ### Example JSON Ruleset
 ```json
@@ -237,6 +259,7 @@ If you need to check a flag imperatively (e.g., inside a Bloc or ViewModel) rath
 final isEnabled = FlagFlow.getBool('new_checkout', defaultValue: false);
 final themeString = FlagFlow.getString('theme', defaultValue: 'light');
 final maxRetries = FlagFlow.getInt('max_retries', defaultValue: 3);
+final config = FlagFlow.getJson('config', defaultValue: {});
 ```
 
 ### Manual Refreshing
@@ -245,6 +268,13 @@ You can force a sync with your providers at any time (e.g. on a "Pull to Refresh
 ```dart
 // Safely mutex-locked! 10 rapid calls will only result in 1 network request.
 await FlagFlow.refresh(); 
+```
+
+### Debug Logging
+If you want to understand *why* a flag evaluated a certain way (e.g., why did targeting fail? Which provider won the merge conflict?), enable debug logging:
+```dart
+FlagFlow.enableDebugLogging = true;
+// Console Output: [FlagFlow Debug] Evaluated 'beta_feature' to 'false' (Source: Default Fallback)
 ```
 
 ---

@@ -19,9 +19,14 @@ class FeatureFlagWidget extends StatefulWidget {
   /// The default boolean value if the flag is missing from all providers.
   final bool defaultValue;
 
+  /// Optional: If your flag is a JSON object, use this to extract a specific boolean key from it.
+  /// Example: If flag is `{"auth": true}`, set `jsonKey: 'auth'`.
+  final String? jsonKey;
+
   const FeatureFlagWidget({
     super.key,
     required this.flagKey,
+    this.jsonKey,
     this.fallback,
     this.defaultValue = false,
     required this.child,
@@ -34,18 +39,26 @@ class FeatureFlagWidget extends StatefulWidget {
 class _FeatureFlagWidgetState extends State<FeatureFlagWidget> {
   late bool _isEnabled;
   StreamSubscription<FlagValue>? _subscription;
+  
+  bool _evaluate(FlagValue value) {
+    if (widget.jsonKey != null) {
+      return value.asJson[widget.jsonKey] == true;
+    }
+    return value.asBool;
+  }
 
   @override
   void initState() {
     super.initState();
     // Synchronously grab initial state to prevent UI flicker
-    _isEnabled = FlagFlow.isEnabled(widget.flagKey, defaultValue: widget.defaultValue);
+    final initialValue = FlagFlow.getValue(widget.flagKey, defaultValue: widget.defaultValue);
+    _isEnabled = _evaluate(initialValue);
     
     // Subscribe to background updates
     _subscription = FlagFlow.watch(widget.flagKey).listen((value) {
       if (mounted) {
         setState(() {
-          _isEnabled = value.asBool;
+          _isEnabled = _evaluate(value);
         });
       }
     });

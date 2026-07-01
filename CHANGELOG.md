@@ -1,3 +1,15 @@
+## 1.1.1
+
+* Added explicit instructions to the `README.md` about Firebase Remote Config's internal `minimumFetchInterval` caching to help developers correctly test the `refreshInterval` feature.
+
+## 1.1.0
+
+* **New Feature**: Added `jsonKey` parameter to `FeatureFlagWidget`. You can now declaratively extract boolean values from deeply nested JSON payload flags directly in the UI!
+
+## 1.0.4
+
+* Expanded the `README.md` to include explicit guidance on Firebase Setup, JSON object extraction using `.asJson`, and debugging utilities.
+
 ## 1.0.3
 
 * Added comprehensive Dartdoc (`///`) comments to all public APIs (`FeatureFlagWidget`, `FlagFlow`, `UserContext`, etc.) to improve IDE hover tooltips.
