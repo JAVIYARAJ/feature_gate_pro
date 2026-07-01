@@ -1,3 +1,11 @@
+## 1.2.4
+
+* **Documentation**: Massively expanded the `How to Test Every SDK Feature` section in the `README.md` to include instructions for all 8 core SDK features, including the QA Dashboard, REST APIs, Local JSON, and Analytics tracking.
+
+## 1.2.3
+
+* **Documentation**: Added an exhaustive `How to Test the SDK Features` section to the `README.md`. This gives developers an absolute foolproof guide on how to test Firebase caching, Percentage Rollouts, Audience Targeting, and the Offline Cache.
+
 ## 1.2.2
 
 * **Critical Bug Fix**: Fixed an issue where `FeatureFlagWidget` and `FeatureFlagBuilder` would not reactively rebuild if the flag was provided exclusively by `FirebaseAdapterProvider` or `RestApiProvider` and not present in the local `FlagRegistry` fallback cache.

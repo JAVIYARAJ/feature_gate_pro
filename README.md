@@ -280,6 +280,62 @@ FlagFlow.enableDebugLogging = true;
 // Console Output: [FlagFlow Debug] Evaluated 'beta_feature' to 'false' (Source: Default Fallback)
 ```
 
+## 🧪 8. How to Test Every SDK Feature
+
+This SDK is incredibly robust. Here is a checklist on how to verify **every single feature** locally:
+
+### 1. Testing Firebase Live Updates (`refreshInterval`)
+By default, Firebase heavily caches data for 12 hours. If you want to test the `refreshInterval: Duration(minutes: 1)` feature, you **must** disable Firebase's cache during testing:
+```dart
+await FirebaseRemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
+  fetchTimeout: const Duration(seconds: 10),
+  minimumFetchInterval: const Duration(minutes: kDebugMode ? 0 : 60), // 👈 CRITICAL: 0 for testing!
+));
+```
+
+### 2. Testing Percentage Rollouts
+1. In your Dart code, initialize `FlagFlow` with a User ID: `userContext: const UserContext(id: 'user_123')`.
+2. In Firebase or JSON, create a parameter `beta_feature` and set `"rollout": 50`.
+3. Try changing the `id` from `'user_123'` to `'user_456'`. You will see the feature perfectly split 50/50 between different user IDs, but it will always be consistent for the *same* user!
+
+### 3. Testing Audience Targeting
+1. In your Dart code, pass attributes: `userContext: const UserContext(id: '1', country: 'US')`.
+2. In Firebase or JSON, create a parameter with targeting:
+```json
+{
+  "value": true,
+  "metadata": { "custom": { "targeting": [ { "attribute": "country", "operator": "==", "value": "US" } ] } }
+}
+```
+3. Run the app, the feature will show. Change `country: 'IN'` in your code and restart—the feature will instantly be blocked!
+
+### 4. Testing the Offline Cache
+1. Initialize `FlagFlow` with `cache: SharedPreferencesCache()`.
+2. Run your app online so the cache can silently save the Firebase data to your phone.
+3. Turn off Wi-Fi and Cellular Data on your phone (Airplane Mode).
+4. Restart the app. The SDK will detect there is no internet, and immediately load your UI perfectly using the offline cache!
+
+### 5. Testing the QA Debug Dashboard
+1. Anywhere in your app, add a temporary button that navigates to `FeatureGateDebugScreen`.
+2. Open the dashboard. You will see your active Context and a list of all your flags.
+3. Tap on a flag to force a **Runtime Override** (e.g. force it to TRUE). 
+4. Go back to your app. The UI will instantly update, completely bypassing Firebase and Targeting logic! (Restart the app to clear the override).
+
+### 6. Testing the Custom REST API
+1. Go to a mock JSON site like `npoint.io` and create a JSON payload.
+2. Add `RestApiProvider(endpoint: 'https://api.npoint.io/your_id')` as the FIRST provider in your list.
+3. Update the JSON on `npoint.io`. Within 1 minute, the app will download the new JSON and instantly update the screen!
+
+### 7. Testing Local JSON Fallbacks
+1. Create a `flags.json` file in your `assets/` folder and add it to `pubspec.yaml`.
+2. Add `LocalJsonProvider(assetPath: 'assets/flags.json')` as the LAST provider in your list.
+3. Try deleting a flag from Firebase. When the SDK fails to find the flag online, it will perfectly fall back to the value in your local asset file.
+
+### 8. Testing Analytics Tracking
+1. Add `analytics: FirebaseAnalyticsAdapter(sampleRate: 1.0, logEvent: ...)` to `FlagFlow.initialize()`.
+2. Open your app and let your flags evaluate.
+3. Go to the Firebase Analytics Dashboard (or look at your terminal console). You will see `"feature_evaluated"` events successfully tracked!
+
 ---
 
 ## 📜 License
