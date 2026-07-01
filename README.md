@@ -113,6 +113,8 @@ Best for wrapping entire screens, features, or large UI blocks for simple `true`
 ```dart
 FeatureFlagWidget(
   flagKey: 'new_checkout_flow',
+  // (Optional) Set to false if you don't want the UI to shift automatically when flags refresh in the background
+  listenToChanges: true, 
   // Rendered if 'new_checkout_flow' evaluates to true
   child: const NewCheckoutScreen(),
   // Rendered if false, missing, or targeting fails
@@ -127,6 +129,7 @@ Best for extracting underlying strings, integers, or JSON maps dynamically.
 ```dart
 FeatureFlagBuilder(
   flagKey: 'enabled_modules',
+  listenToChanges: true, 
   builder: (context, flagValue) {
     // flagValue.asString, .asBool, .asInt, .asDouble, .asJson
     

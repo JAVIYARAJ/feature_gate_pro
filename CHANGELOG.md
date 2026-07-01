@@ -1,3 +1,7 @@
+## 1.2.1
+
+* **Documentation**: Updated the `README.md` to document the new `listenToChanges` parameter in the Reactive Widgets section.
+
 ## 1.2.0
 
 * **New Feature**: Added `listenToChanges` parameter to `FeatureFlagWidget` and `FeatureFlagBuilder`. You can now set this to `false` if you want the widget to read the flag once during initialization and intentionally ignore background refreshes (preventing sudden UI shifts).
