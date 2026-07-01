@@ -11,5 +11,5 @@ abstract class AnalyticsProvider {
   void trackEvaluation(String key, FlagValue evaluatedValue, {UserContext? context});
   
   /// Tracks a custom event.
-  void trackEvent(String eventName, {Map<String, dynamic>? properties});
+  void trackEvent(String eventName, {Map<String, Object>? properties});
 }

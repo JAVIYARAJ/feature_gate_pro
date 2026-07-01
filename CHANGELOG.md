@@ -1,3 +1,7 @@
+## 1.2.5
+
+* **Bug Fix**: Fixed a Dart type promotion error in `FirebaseAnalyticsAdapter` where the `firebase_analytics` package rejected the map because it required `Map<String, Object>?` instead of `Map<String, dynamic>?`.
+
 ## 1.2.4
 
 * **Documentation**: Massively expanded the `How to Test Every SDK Feature` section in the `README.md` to include instructions for all 8 core SDK features, including the QA Dashboard, REST APIs, Local JSON, and Analytics tracking.
