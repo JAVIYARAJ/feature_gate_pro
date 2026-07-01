@@ -6,9 +6,17 @@ import '../models/flag_value.dart';
 /// A reactive widget that renders a child if a boolean feature flag is enabled.
 /// If disabled, it optionally renders a fallback widget or an empty container.
 class FeatureFlagWidget extends StatefulWidget {
+  /// The exact key of the feature flag to evaluate.
   final String flagKey;
+  
+  /// The widget to render if the flag evaluates to `true`.
   final Widget child;
+  
+  /// The widget to render if the flag evaluates to `false`.
+  /// Defaults to an empty `SizedBox.shrink()` if not provided.
   final Widget? fallback;
+  
+  /// The default boolean value if the flag is missing from all providers.
   final bool defaultValue;
 
   const FeatureFlagWidget({

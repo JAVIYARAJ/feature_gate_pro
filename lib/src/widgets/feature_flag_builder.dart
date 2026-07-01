@@ -6,8 +6,14 @@ import '../models/flag_value.dart';
 /// A reactive widget builder that passes the evaluated `FlagValue` directly to your builder function.
 /// Useful for dynamically changing themes, limits, strings, or JSON configurations dynamically.
 class FeatureFlagBuilder extends StatefulWidget {
+  /// The exact key of the feature flag to evaluate.
   final String flagKey;
+  
+  /// The builder function that receives the active [BuildContext] and evaluated [FlagValue].
+  /// This function will be called repeatedly whenever the underlying flag changes.
   final Widget Function(BuildContext context, FlagValue value) builder;
+  
+  /// The default raw value (string, map, bool, etc.) to use if the flag is missing from all providers.
   final dynamic defaultValue;
 
   const FeatureFlagBuilder({

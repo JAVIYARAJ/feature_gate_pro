@@ -1,6 +1,6 @@
 name: feature_gate_pro
 description: A high-performance, robust Feature Flag SDK for Flutter. Supports Local JSON, Remote Config, custom REST APIs, Percentage Rollouts, and Audience Targeting.
-version: 1.0.0
+version: 1.0.3
 homepage: https://github.com/JAVIYARAJ/feature_gate_pro
 repository: https://github.com/JAVIYARAJ/feature_gate_pro
 

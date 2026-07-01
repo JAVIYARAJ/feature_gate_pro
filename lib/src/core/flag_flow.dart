@@ -64,6 +64,12 @@ class FlagFlow {
   }
 
   /// Initializes the FlagFlow SDK.
+  /// 
+  /// * [providers] - A list of `FlagProvider`s. They are evaluated in order.
+  /// * [cache] - An optional `CacheProvider` to persist flags locally.
+  /// * [analytics] - An optional `AnalyticsProvider` to track A/B testing variants.
+  /// * [userContext] - An optional `UserContext` used for Audience Targeting and Rollouts.
+  /// * [refreshInterval] - If provided, the SDK will automatically fetch new flags in the background.
   static Future<void> initialize({
     List<FlagProvider>? providers,
     CacheProvider? cache,

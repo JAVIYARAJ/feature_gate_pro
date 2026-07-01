@@ -1,3 +1,15 @@
+## 1.0.3
+
+* Added comprehensive Dartdoc (`///`) comments to all public APIs (`FeatureFlagWidget`, `FlagFlow`, `UserContext`, etc.) to improve IDE hover tooltips.
+
+## 1.0.2
+
+* Fixed dynamic dispatch type casting for `FirebaseAdapterProvider` to perfectly extract `RemoteConfigValue`.
+
+## 1.0.1
+
+* Updated GitHub repository and homepage URLs in `pubspec.yaml` to ensure correct package linking on pub.dev.
+
 ## 1.0.0
 
 * Initial Release of FeatureGate Pro SDK.

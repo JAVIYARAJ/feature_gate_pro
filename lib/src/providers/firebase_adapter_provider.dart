@@ -9,7 +9,12 @@ import '../models/flag_value.dart';
 /// An adapter that integrates with Firebase Remote Config (or any Map-based remote config)
 /// without introducing a hard dependency on Firebase packages in the SDK.
 class FirebaseAdapterProvider implements FlagProvider {
+  /// A callback that executes `FirebaseRemoteConfig.instance.fetchAndActivate()`.
+  /// Must return a Future.
   final Future<void> Function() onFetchAndActivate;
+  
+  /// A callback that executes `FirebaseRemoteConfig.instance.getAll()`.
+  /// Must return the Map of remote config values.
   final Map<String, dynamic> Function() onGetAll;
   
   final Map<String, FeatureFlag> _flags = {};
@@ -34,7 +39,15 @@ class FirebaseAdapterProvider implements FlagProvider {
       
       for (final entry in allValues.entries) {
         final key = entry.key;
-        final rawString = entry.value.toString();
+        
+        String rawString;
+        try {
+          // Use dynamic dispatch to extract the string if it's a RemoteConfigValue
+          // This avoids a hard dependency on the firebase package
+          rawString = (entry.value as dynamic).asString() as String;
+        } catch (_) {
+          rawString = entry.value.toString();
+        }
         
         dynamic parsedValue = rawString;
 
